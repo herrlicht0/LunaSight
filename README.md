@@ -69,7 +69,9 @@ The higher-resolution SLDEM2015 merged LOLA/Kaguya terrain product covers approx
 ### 4. Earth visibility and radio reference estimate
 
 - Earth visibility checks whether Earth's centre is above the reference/local terrain horizon.
-- The S- and X-band RF examples use published DSN ground-station EIRP profiles, JPL Horizons Earth range when available, and the free-space path-loss equation.
+- The S- and X-band RF examples use published DSN ground-station EIRP profiles, the selected epoch's JPL Horizons topocentric Earth range when available, and the Friis/free-space path-loss equation. The displayed received power is explicitly a clear-path reference, not a link margin or a measured signal.
+- Lunar coordinates change Earth-center range by at most about one lunar diameter (~3,475 km), compared with a roughly 400,000 km link. That changes free-space loss by less than 0.1 dB, so location-to-location power can look almost identical even when the calculation is working correctly. Frequency and Earth–Moon distance drive free-space loss; terrain and Earth geometry affect direct-path availability.
+- The visibility check compares Earth's center with the modeled local horizon. It does not model Earth's visible limb, a particular DSN station's position/availability, antenna patterns or pointing, diffraction, reflections, or a full communications link budget. When Earth's center is below the modeled horizon, the panel no longer presents the hypothetical clear-path power as an available signal.
 - The default lander receive gain and additional-loss values are simple reference assumptions that can be changed under **Show technical settings**.
 - This produces a theoretical received-power reference in dBm. It is not a completed communications link budget and does not prove a modem can establish a link.
 
