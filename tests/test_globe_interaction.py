@@ -2,11 +2,13 @@ import math
 import unittest
 from types import SimpleNamespace
 
+import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import proj3d
 
 from lunasight.advanced_ui import LunarSurfaceExplorer
+from lunasight.terrain import TerrainGrid
 
 
 class GlobeInteractionTests(unittest.TestCase):
@@ -14,6 +16,27 @@ class GlobeInteractionTests(unittest.TestCase):
         self.assertNotIn("Chang'e 4", LunarSurfaceExplorer.QUICK_SITES)
         self.assertNotIn("Chang'e 5", LunarSurfaceExplorer.QUICK_SITES)
         self.assertIn("Chandrayaan-3", LunarSurfaceExplorer.QUICK_SITES)
+
+    def test_selected_nasa_trek_patch_is_used_for_radio_horizon(self):
+        explorer = LunarSurfaceExplorer.__new__(LunarSurfaceExplorer)
+        axis = np.linspace(-1_000.0, 1_000.0, 21)
+        x, y = np.meshgrid(axis, axis)
+        elevation = np.zeros_like(x)
+        elevation[5, 10] = 100.0
+        explorer.selected_lat = -30.0
+        explorer.selected_lon = 45.0
+        explorer.selected_x = None
+        explorer.selected_y = None
+        explorer._terrain_site_index = None
+        explorer.grid = TerrainGrid(x, y, np.zeros_like(x), "demo", 100.0)
+        explorer.trek_site_grid = TerrainGrid(
+            x, y, elevation, "NASA Moon Trek test patch", 100.0
+        )
+        explorer._trek_site_key = (round(-30.0, 6), round(45.0, 6))
+
+        horizon = explorer.local_horizon(0.0, eye_height_m=1.7)
+
+        self.assertGreater(horizon, 10.0)
 
     def setUp(self):
         self.explorer = LunarSurfaceExplorer.__new__(LunarSurfaceExplorer)

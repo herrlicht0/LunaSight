@@ -1,5 +1,6 @@
 import math
 import unittest
+from types import SimpleNamespace
 
 from lunasight.science import (
     C_M_S,
@@ -43,8 +44,30 @@ class RadioAndPhotometryTests(unittest.TestCase):
         blocked = calculate_rf_link(profile, 1.0, 384_400.0, 0.0, 2.0, 2.0)
         self.assertTrue(visible.line_of_sight)
         self.assertFalse(blocked.line_of_sight)
-        # Power is retained as an explicitly theoretical, unobstructed reference.
+        self.assertIn("Earth center", visible.status)
+        self.assertIn("partial-disk visibility", blocked.status)
+        # The value is only a clear-path reference, not received power when blocked.
         self.assertAlmostEqual(visible.received_power_dbm_if_los, blocked.received_power_dbm_if_los)
+
+    def test_site_range_changes_free_space_power_by_the_expected_small_amount(self):
+        profile = DSN_PROFILES["S_34M_20KW"]
+        equatorial = calculate_rf_link(profile, 45.0, 400_000.0)
+        far_lunar_site = calculate_rf_link(profile, 45.0, 403_500.0)
+
+        expected_loss_delta = 20.0 * math.log10(403_500.0 / 400_000.0)
+        self.assertAlmostEqual(
+            far_lunar_site.free_space_path_loss_db
+            - equatorial.free_space_path_loss_db,
+            expected_loss_delta,
+            places=10,
+        )
+        self.assertAlmostEqual(
+            equatorial.received_power_dbm_if_los
+            - far_lunar_site.received_power_dbm_if_los,
+            expected_loss_delta,
+            places=10,
+        )
+        self.assertLess(expected_loss_delta, 0.1)
 
     def test_lux_and_irradiance_use_direct_sun_and_horizon_gate(self):
         self.assertAlmostEqual(estimate_solar_illuminance_lux(30), 63_500, delta=1)
@@ -72,6 +95,29 @@ class RadioAndPhotometryTests(unittest.TestCase):
         report = build_session_report(None, None, DSN_PROFILES["S_34M_20KW"])
         self.assertIn("BİLİNMİYOR (JPL analizi yok)", report)
         self.assertIn("quantity 20", report)
+
+    def test_report_labels_blocked_power_as_hypothetical_and_shows_used_range(self):
+        profile = DSN_PROFILES["S_34M_20KW"]
+        result = SimpleNamespace(
+            earth_range_km=400_000.0,
+            earth_elevation_deg=-2.0,
+            earth_azimuth_deg=180.0,
+            solar_azimuth_deg=0.0,
+            solar_elevation_deg=20.0,
+            sunlight_fraction=0.5,
+            earth_visibility_fraction=0.5,
+            simultaneous_visibility_fraction=0.25,
+        )
+        link = calculate_rf_link(profile, -2.0, 403_500.0, 0.0, 2.0, 0.0)
+
+        report = build_session_report(
+            None, result, profile, range_km="403500", rf=link
+        )
+
+        self.assertIn("DÜNYA MERKEZİ MODELLENEN UFUK ALTINDA", report)
+        self.assertIn("varsayımsal engelsiz yol referansıdır", report)
+        self.assertIn("RF hesabında kullanılan menzil: 403,500.00 km", report)
+        self.assertIn("JPL Horizons anlık Dünya menzili: 400,000.0 km", report)
 
 
 class PolarCoordinateTests(unittest.TestCase):
