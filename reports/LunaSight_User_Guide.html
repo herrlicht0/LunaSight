@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LunaSight — Quick User Guide</title>
+  <style>
+    :root { color-scheme: light; font: 18px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { max-width: 880px; margin: 0 auto; padding: 2rem 1.25rem 4rem; color: #172033; background: #f7f9fc; }
+    h1, h2 { line-height: 1.2; color: #102b4e; }
+    h1 { font-size: clamp(2rem, 5vw, 3rem); }
+    h2 { margin-top: 2.2rem; }
+    a { color: #0756a3; }
+    .lead, .notice { padding: 1rem 1.2rem; border-left: 5px solid #1769aa; background: #e8f2fc; }
+    .notice { border-color: #9a5c00; background: #fff4dc; }
+    li { margin: .45rem 0; }
+    kbd { padding: .12rem .4rem; border: 1px solid #8894a8; border-radius: .25rem; background: white; font: inherit; }
+    @media (max-width: 600px) { body { padding: 1.2rem .9rem 3rem; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>LunaSight quick user guide</h1>
+    <p class="lead">Choose a lunar location, inspect its lighting and Earth visibility, and compare candidate sites. The app is an educational planning aid, not a landing approval or flight tool.</p>
+  </header>
+
+  <h2>1. Choose a place</h2>
+  <ol>
+    <li>Select <strong>English</strong> or <strong>Turkish</strong> from the Language menu in the upper-right corner.</li>
+    <li>Choose a globe preset for the near side, far side, east, west, north pole or south pole.</li>
+    <li>Hold the left mouse button and drag on the Moon to rotate the globe. Dragging does not select a site.</li>
+    <li>Use the mouse wheel/trackpad or the <strong>+</strong> and <strong>−</strong> buttons to zoom. Select <strong>Reset view</strong> to return to the South Pole preset and default zoom.</li>
+    <li>Make a short click on the lunar surface to select a location. Quick-site choices and optional manual coordinates are also available.</li>
+    <li>The selected location stays marked while you rotate. If it is on the far side, a direction arrow at the edge points toward it.</li>
+  </ol>
+
+  <h2>2. Check sunlight and Earth visibility</h2>
+  <ol>
+    <li>Choose <strong>Set date and check this place</strong> to open the date and sky view.</li>
+    <li>Enter the landing date and time in UTC, then press <strong>Check sunlight and Earth with NASA/JPL</strong>. An internet connection is needed for live Horizons results.</li>
+    <li>Review the Sun and Earth elevations and the estimated visibility over the next 24 hours. Open <strong>Sunlight &amp; Earth link</strong> for plain-language radio and lighting explanations.</li>
+    <li>The selected-site panel shows an eye-level surface perspective. When an analysis is available, the Sun and Earth are marked if they fall within the view.</li>
+  </ol>
+
+  <h2>3. Compare places</h2>
+  <p>Add candidate locations to the comparison list. Double-click a row to load it into the date and sky view. Export the list when you want to keep a copy.</p>
+
+  <h2>Terrain and results</h2>
+  <p>The whole-Moon map uses NASA LOLA elevation and an LROC-derived color texture when loaded. Its 81 × 161 anti-aliased display mesh shows more visible detail while preserving the source dataset's actual resolution; it is for selecting locations and broad context, not landing-hazard assessment. Detailed local terrain is available only for selected regions. After analysis, the eye-level perspective faces the Sun and dims when the Sun is below the local horizon. Without NASA elevation, a repeatable site-specific schematic is shown; it is illustrative, not measured terrain or a camera image.</p>
+  <p>Lighting, visibility and radio outputs are simplified estimates. A promising-geometry label is not a safety assessment, landing-site certification or a mission-specific communications link budget.</p>
+
+  <p><a href="LunaSight_Science_and_Coverage_Guide.html">Read the science and coverage guide</a></p>
+</body>
+</html>
