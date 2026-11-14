@@ -41,7 +41,7 @@ JPL DSN 810-005 Module 104 Rev. N, **near-Earth** S-band için 34 m anten örnek
 
 EIRP, yalnızca vericinin fiziksel watt değeri değildir; verici gücü, anten kazancı ve ilgili kayıpların birleşik etkisini ana huzme yönünde ifade eder. DSN katalog gücü her NASA/CLPS aracı için geçerli değildir; bu profiller belirli DSN yer istasyonu örnekleridir. DSN kaynakları ayrıca near-Earth X-band EIRP'nin antene göre katalog özetinden daha düşük olabileceğini ve ayrıntılı istasyon dokümanına bakılması gerektiğini belirtir.
 
-## 5. Dünya → Ay alınan sinyal gücü modeli
+## 5. Dünya → Ay engelsiz yol güç referansı
 
 İlk mertebe serbest-uzay bağlantı denklemimiz:
 
@@ -53,7 +53,7 @@ EIRP, yalnızca vericinin fiziksel watt değeri değildir; verici gücü, anten 
 
 Burada:
 
-- `R`: Dünya–Ay bağlantı mesafesi (metre). Uygulama JPL Horizons Observer quantity 20 ile anlık gözlemci-hedef menzilini ister; API menzil sağlamazsa 384.400 km ortalama varsayımına döner.
+- `R`: Dünya–Ay bağlantı mesafesi (metre). Uygulama seçilen epok için JPL Horizons Observer quantity 20 topomerkezli menzilini kullanır; menzil yoksa 384.400 km ortalama yedeğidir. Teknik ayardaki kullanıcı girdisi hesabı değiştirebilir.
 - `λ`: seçilen uplink dalga boyu.
 - `EIRP`: DSN hizmet kataloğundan seçilen yer istasyonu EIRP değeri.
 - `Grx`: Ay iniş aracının alıcı anten kazancı. Varsayılan 0 dBi izotropik referanstır; belirli bir CLPS aracının anten özelliği olduğu iddia edilmez.
@@ -63,7 +63,7 @@ Uygulamadaki otomatik EIRP profilleri yalnızca S ve X near-Earth örnekleridir.
 
 ### 5.1 Ortalama mesafede örnek hesap
 
-Aşağıdaki tablo 384.400 km, 0 dBi alıcı anten kazancı ve 2 dB ek kayıp varsayar. Sayılar serbest-uzay referansıdır; Dünya'nın yerel ufuk tarafından kapatılmadığı durum içindir.
+Aşağıdaki tablo 384.400 km, 0 dBi alıcı anten kazancı ve 2 dB ek kayıp varsayar. Sayılar engelsiz serbest-uzay referansıdır; ölçülmüş alınan sinyal veya bağlantı marjı değildir.
 
 | DSN örnek profili | EIRP | Frekans | FSPL | Tahmini alınan güç |
 |---|---:|---:|---:|---:|
@@ -71,7 +71,7 @@ Aşağıdaki tablo 384.400 km, 0 dBi alıcı anten kazancı ve 2 dB ek kayıp va
 | X-band DSS-24 / 20 kW | 109.7 dBW | 7.2125 GHz | 221.31 dB | -83.61 dBm |
 | X-band DSS-26 / 80 kW | 115.3 dBW | 7.2125 GHz | 221.31 dB | -78.01 dBm |
 
-Bu güç değerleri alıcı hassasiyeti veya bağlantı marjı değildir. Alıcı gürültü sıcaklığı, G/T, kanal bant genişliği, veri hızı, modülasyon/kodlama, polarizasyon uyumsuzluğu, anten yönelimi ve gerçek uzay aracı donanımı bilinmeden “bağlantı kapanıyor” sonucu çıkarılamaz.
+Bu güç değerleri alıcı hassasiyeti veya bağlantı marjı değildir. Alıcı gürültü sıcaklığı, G/T, kanal bant genişliği, veri hızı, modülasyon/kodlama, polarizasyon uyumsuzluğu, anten yönelimi ve gerçek uzay aracı donanımı bilinmeden “bağlantı kapanıyor” sonucu çıkarılamaz. Dünya merkezi modellenen yerel ufkun altındaysa panel bu varsayımsal gücü kullanılabilir alınan sinyal gibi göstermez.
 
 ## 5.2 Seçili senaryonun anlık sonuçları
 
@@ -87,16 +87,16 @@ RF modelindeki seçili profil: **S-band · DSS-24 · 34 m · 20 kW**. Frekans 2.
 
 Bu RF değeri alıcı gürültüsü ve veri hızıyla karşılaştırılmış bir bağlantı marjı değildir.
 
-## 6. Ay'daki farklı konumlarda RF gücü neden değişir?
+## 6. Konumlar arasında RF gücü neden neredeyse aynı?
 
-1. **En önemli konum etkisi arazi görüş hattıdır.** Krater duvarı veya sırt, Dünya'yı kapatırsa doğrudan bağlantı kesilir. Serbest-uzay denklemi bir güç seviyesi üretse de bu durumda gerçek doğrudan sinyal yolu yoktur.
+1. **Dünya merkezi / yerel ufuk kontrolü:** Krater duvarı veya sırt Dünya merkezinin yönünü kapatabilir. Bu merkez-yönü ufuk kontrolüdür; belirli bir DSN istasyonuna gerçek görüş hattı veya link kapanışı değildir. Dünya diskinin görünür kenarı, istasyon konumu/kullanılabilirliği, anten örüntüsü, kırınım ve yansımalar modellenmez.
 2. **Dünya'nın azimut ve yükseklik açısı değişir.** Düşük yükseklikteki Dünya, yerel krater kenarları ve sırtlar tarafından daha kolay örtülür. Anten de Dünya yönüne çevrilmelidir.
 3. **Dünya–Ay uzaklığı zamanla değişir.** Serbest-uzay kaybı mesafenin logaritmasıyla artar. JPL Horizons quantity 20 menzili verirse RF hesabı seçilen tarih/saatteki bu değeri kullanır; veri dönmezse 384.400 km yalnızca ortalama menzil yedeğidir.
-4. **Yüzey koordinatının Ay merkezine göre mesafeye etkisi küçüktür.** Ay yarıçapı, Dünya–Ay uzaklığına kıyasla çok küçüktür. Bu nedenle tek başına iniş koordinatının menzile etkisi genellikle birkaç yüzde bir dB düzeyindedir; bir krater sırtının görüş hattını tamamen kapatması çok daha önemlidir.
+4. **Yüzey koordinatının menzile etkisi küçüktür.** Ay yüzeyindeki iki noktanın menzil farkı en çok yaklaşık bir Ay çapı (~3.475 km), Dünya–Ay bağlantısı ise yaklaşık 400.000 km mertebesindedir. Bu fark serbest-uzay kaybını 0,1 dB'den az değiştirir. İki noktada tahmini güç değerlerinin neredeyse aynı olması beklenir; bu farkı yapay büyütmek doğru olmaz. Uygulama küçük değişimi göstermek için değerleri iki ondalıkla gösterir.
 5. **Anten deseni ve yönelimi önemlidir.** Alıcı kazancı frekansa, anten türüne, gövdeye göre yönelime, polarizasyona ve Dünya'nın anten ana huzmesine göre açısına bağlıdır.
 6. **Yüksek frekanslar daha yüksek serbest-uzay kaybı getirir.** X ve Ka bantlarında yönlü, yüksek kazançlı antenlerle bu telafi edilebilir; ancak anten yönlendirme hassasiyeti artar. Dünya atmosferindeki yağmur ve gaz kayıpları da özellikle yüksek bantlarda önem kazanır.
 
-Bu nedenle konumlar arasında ölçülen RF farkını yalnızca koordinata bağlamak doğru değildir. Öncelik: Dünya görüş hattı ve yerel ufuk; ardından anten örüntüsü, link konfigürasyonu ve gerçek menzil.
+Bu nedenle konumlar arasındaki serbest-uzay güç referansının benzer olması beklenir. Konuma bağlı kullanılabilirlik ufuk/terrain ve gerçek anten geometrisine; frekans ve menzil ise serbest-uzay kaybına etki eder.
 
 ## 7. Ay yüzeyi aydınlanması ve lux
 

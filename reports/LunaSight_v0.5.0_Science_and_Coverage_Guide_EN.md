@@ -55,11 +55,15 @@ Lux and radio power are different physical quantities and are calculated separat
 
 ### 3.4 Earth visibility and radio estimate
 
-The radio panel calculates a free-space received-power reference using:
+The radio panel calculates a clear-path free-space received-power reference using:
 
 `Pr (dBW) = EIRP (dBW) − free-space path loss (dB) + receiver gain (dBi) − other losses (dB)`
 
-The selected S/X-band examples use published DSN ground-station EIRP profiles. Earth–Moon distance comes from Horizons when available; the panel allows the reference assumptions to be edited. A terrain horizon can suppress the direct Earth path when high-resolution local terrain covers the selected point.
+The selected S/X-band examples use published DSN ground-station EIRP profiles. Earth–Moon distance comes from the selected epoch's topocentric Horizons result when available; otherwise the mean distance is used. The range, assumed receiver gain, additional losses and (when detailed terrain is unavailable) reference horizon can be edited. The power is displayed to two decimal places to show small, real range differences between sites.
+
+At a fixed epoch, lunar surface coordinates change the Earth-center range by no more than approximately one lunar diameter (~3,475 km) compared with an approximately 400,000 km link. That changes free-space path loss by less than 0.1 dB, so location-to-location power can look almost identical. This is physically expected: free-space loss depends on frequency and distance, while the modeled Earth-center visibility and local terrain affect direct-path availability.
+
+If Earth's center is below the modeled horizon, the panel does not present the clear-path power as an available signal. The center-of-Earth horizon test does not model Earth's visible limb, a particular DSN station's location/availability, antenna patterns or pointing, diffraction or reflections; it is not station-specific line of sight.
 
 This is not a complete communications link budget. A real design also requires the spacecraft's actual antenna gain/pattern, receiver G/T or noise temperature, bandwidth, data rate, modulation/coding, antenna pointing, polarization and implementation losses. The chosen DSN example is not evidence that every NASA or commercial lander uses that station or transmitter configuration.
 

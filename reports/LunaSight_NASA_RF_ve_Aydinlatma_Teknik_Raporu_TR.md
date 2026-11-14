@@ -8,7 +8,7 @@
 
 LunaSight, seçilen Ay koordinatında JPL Horizons ile Güneş ve Dünya'nın azimut/yükseklik açılarını hesaplar; NASA/GSFC LOLA sayısal yükseklik modeli yüklendiğinde yerel arazi ufkunu yaklaşık olarak değerlendirir. POV görüntüsünün doğrudan aydınlatması, yatay yüzeye gelen güneş ışığından türetilen yaklaşık lux ve W/m² değerleriyle ölçeklenir.
 
-Dünya'dan Ay'a RF gücü ayrı bir fiziksel modeldir. Yüzeydeki lux, RF sinyalinin gücünü artırmaz veya azaltmaz. RF hesabında frekans/dalga boyu, yer istasyonunun EIRP'si, Dünya–Ay menzili, iniş aracı alıcı anten kazancı ve ek kayıplar kullanılır. Ay yüzeyindeki yerel konumun en belirgin RF etkisi, Dünya'nın arazi ufkunun üzerinde olup olmamasıdır.
+Dünya'dan Ay'a RF gücü ayrı bir fiziksel modeldir. Yüzeydeki lux, RF sinyalinin gücünü artırmaz veya azaltmaz. RF hesabında frekans/dalga boyu, örnek yer istasyonunun EIRP'si, seçilen zaman için JPL Horizons topomerkezli Dünya menzili, varsayılan alıcı anten kazancı ve ek kayıplar kullanılır. Ay yüzeyindeki konumun menzile etkisi çok küçük; yerel ufuk ve arazi ise merkez-yönü görünürlük için önemlidir.
 
 ## 2. Ay bölgesi için uygun frekanslar
 
@@ -62,7 +62,7 @@ Alıcıda hesaplanan referans güç:
 
 `Pr(dBm) = Pr(dBW) + 30`
 
-- `R`: JPL Horizons'tan gelen Dünya–Ay anlık menzili; veri yoksa prototip 384.400 km ortalama menzil varsayımına döner.
+- `R`: seçilen epokta JPL Horizons'tan gelen topomerkezli Dünya menzili; veri yoksa prototip 384.400 km ortalama menzil varsayımına döner. Teknik ayarlardaki kullanıcı girdisi hesabı değiştirebilir.
 - `λ`: seçilen Dünya→Ay uplink dalga boyu.
 - `EIRP`: DSN örnek yer istasyonu konfigürasyonundan alınır.
 - `Grx`: Ay iniş aracının alıcı anten kazancı. Varsayılan 0 dBi, izotropik referanstır; gerçek CLPS anteni olduğu iddia edilmez.
@@ -79,19 +79,19 @@ Alıcıda hesaplanan referans güç:
 | X / DSS-24 / 20 kW | 109.7 dBW | 7.2125 GHz | 221.31 dB | −83.61 dBm |
 | X / DSS-26 / 80 kW | 115.3 dBW | 7.2125 GHz | 221.31 dB | −78.01 dBm |
 
-Bunlar serbest-uzay referans güçleridir; alıcı hassasiyeti ya da link marjı değildir. Bir alıcının sinyali çözebilmesi için gürültü sıcaklığı, G/T, bant genişliği, modülasyon, kodlama, veri hızı, sembol hızı, polarizasyon ve anten yönelimi bilinmelidir. Uygulama bu girdiler olmadan “iletişim başarılı” dememelidir.
+Bunlar engelsiz yol için serbest-uzay referans güçleridir; gerçek alınan sinyal, alıcı hassasiyeti ya da link marjı değildir. Bir alıcının sinyali çözebilmesi için gürültü sıcaklığı, G/T, bant genişliği, modülasyon, kodlama, veri hızı, sembol hızı, polarizasyon ve anten yönelimi bilinmelidir. Uygulama bu girdiler olmadan “iletişim başarılı” dememelidir.
 
 ## 5. RF gücü Ay'daki konuma göre neden değişir?
 
-1. **Arazi görüş hattı (en önemli yerel etki):** Krater kenarı, sırt veya yakındaki yükselti Dünya'yı kapatırsa doğrudan RF hattı geometrik olarak kesilir. Bu durumda uygulama teorik serbest-uzay Pr değerini karşılaştırma amacıyla tutar, ancak doğrudan görüşün engelli olduğunu ayrıca gösterir.
+1. **Dünya merkezi / yerel ufuk kontrolü:** Krater kenarı, sırt veya yakındaki yükselti Dünya merkezinin yönünü kapatabilir. Bu geometri bir istasyon-özel LOS testi değildir: uygulama belirli DSN istasyonunun Dünya üzerindeki konumu ve kullanılabilirliğini, Dünya'nın görünen kenarını, anten örüntüsünü, kırınımı veya yansımaları modellemez. Merkez ufkun altındaysa panel varsayımsal engelsiz güç değerini mevcut alınan sinyal gibi göstermez.
 2. **Dünya'nın ufuk yüksekliği:** Dünya ufka yaklaştıkça küçük topografik yükseltilerin görüşü kesme olasılığı artar. Ay Güney Kutbu'ndaki alçak Güneş açısı gibi düşük Dünya elevasyonu da uzun mesafeli yüzey engellerine duyarlıdır.
 3. **Anten yüksekliği:** İniş aracının anteni, astronotun 1.7 m göz yüksekliğiyle aynı yerde/yükseklikte değildir. Yazılım RF ufkunu ayrı bir alıcı anten yüksekliğinden hesaplar.
 4. **Anten yönelimi ve kazancı:** Yüksek kazançlı antenin ana huzmesi Dünya'ya bakmalıdır. Açısal sapma, polarizasyon uyumsuzluğu ve antenin araç gövdesince gölgelenmesi alınan gücü azaltır.
-5. **Dünya–Ay menzili:** Ay yörüngesi nedeniyle `R` değişir; FSPL mesafeyle artar. Fakat Ay yüzeyindeki konumun Ay merkezine göre menzil farkı, 384.400 km ortalama menzile kıyasla çok küçüktür. Yüzeydeki konumların RF performansında krater engeli çoğu zaman bu küçük menzil farkından çok daha baskındır.
+5. **Dünya–Ay menzili:** Ay yörüngesi nedeniyle `R` zamanla değişir; FSPL mesafeyle artar. İki yüzey konumunun menzil farkı en çok yaklaşık bir Ay çapı (~3.475 km), Dünya–Ay yolu ise yaklaşık 400.000 km mertebesindedir. Bu fark FSPL'yi 0,1 dB'den az değiştirir. Bu nedenle koordinat değişince güç değerinin hemen hemen aynı kalması beklenir; bu değişimi yapay büyütmek doğru olmaz. Uygulama küçük farkı görünür kılmak için güç ve FSPL'yi iki ondalıkla gösterir.
 6. **Frekans:** Aynı mesafede daha yüksek frekans daha yüksek serbest-uzay yol kaybı verir. Daha yüksek kazançlı antenler bu farkı telafi edebilir ancak daha hassas yöneltme gerektirir. K-bandında Dünya atmosferinin gaz/yağmur etkileri de sistem bütçesine eklenmelidir.
 7. **Röle uyduları:** Dünya doğrudan görünmüyorsa bir röle yörünge aracı alternatif yol sağlayabilir. Bu, doğrudan Dünya görüşü ölçümünden farklı bir mimaridir ve mevcut RF paneli röle bağlantısını hesaplamaz.
 
-**Konum karşılaştırma sonucu:** Aynı DSN profili, aynı menzil ve aynı alıcı varsayımları altında iki koordinatın teorik Pr'si hemen hemen aynı kalabilir. Koordinata göre değişen en büyük fark, Dünya'nın yerel ufkun üzerinde olup olmaması ve antenin görüş hattının engellenmesidir. Uygulama bu nedenle “güç” ve “görüş hattı” değerlerini ayrı gösterir.
+**Konum karşılaştırma sonucu:** Aynı DSN profili ve alıcı varsayımları altında serbest-uzay Pr değerlerinin hemen hemen aynı kalması fiziksel olarak beklenir. İki konumun gerçek menzili JPL Horizons'tan ayrı alınır; değişim küçük olduğundan FSPL ve Pr yalnızca az miktarda farklılaşır. Ufuk kartı Dünya merkezinin modellenen ufkun üzerinde olup olmadığını ayrı gösterir. Bu, link kapanışı ya da belirli DSN istasyonuna görüş kanıtı değildir.
 
 ## 6. Lux ve astronaut POV aydınlatması
 
