@@ -31,13 +31,42 @@ def build_session_report(
     if rf is not None:
         fspl = rf.free_space_path_loss_db
         pr_dbm = rf.received_power_dbm_if_los
+        calculation_range = rf.range_km
+    else:
+        calculation_range = distance
     wavelength_cm = profile.wavelength_m * 100.0
     if result is None:
         line_of_sight_label = "BİLİNMİYOR (JPL analizi yok)"
     elif rf is not None:
-        line_of_sight_label = "VAR" if rf.line_of_sight else "YOK / ENGELLİ"
+        line_of_sight_label = (
+            "DÜNYA MERKEZİ MODELLENEN UFUK ÜZERİNDE"
+            if rf.line_of_sight
+            else "DÜNYA MERKEZİ MODELLENEN UFUK ALTINDA"
+        )
     else:
-        line_of_sight_label = "VAR" if result.earth_elevation_deg > 0 else "YOK / ENGELLİ"
+        line_of_sight_label = (
+            "DÜNYA MERKEZİ İDEAL UFUK ÜZERİNDE"
+            if result.earth_elevation_deg > 0
+            else "DÜNYA MERKEZİ İDEAL UFUK ALTINDA"
+        )
+    if result is None:
+        rf_interpretation = (
+            "Anlık geometri bilinmiyor; bu değer yalnızca engelsiz yol "
+            "referansıdır, bağlantı göstergesi değildir."
+        )
+    elif rf is not None and not rf.line_of_sight:
+        rf_interpretation = (
+            "Dünya merkezi modellenen ufkun altındadır. Serbest-uzay güç "
+            "değeri varsayımsal engelsiz yol referansıdır; gerçek alınan "
+            "sinyal değildir. Görünen Dünya kenarı, DSN istasyon konumu, "
+            "kırınım ve yansımalar modellenmez."
+        )
+    else:
+        rf_interpretation = (
+            "Serbest-uzay güç değeri engelsiz yol referansıdır; belirli "
+            "istasyona görüşü, alıcı hassasiyetini veya bağlantı marjını "
+            "kanıtlamaz."
+        )
     site_line = "Görev koordinatı seçilmedi."
     geometry = "Canlı JPL Horizons sonucu bulunmuyor."
     if scenario is not None:
@@ -141,10 +170,11 @@ Bu güç değerleri alıcı hassasiyeti veya bağlantı marjı değildir. Alıc�
 RF modelindeki seçili profil: **{profile.label}**. Frekans {profile.frequency_hz/1e9:.5f} GHz, dalga boyu {wavelength_cm:.3f} cm, EIRP {profile.eirp_dbw:.1f} dBW. Alıcı anten kazancı {gain:.1f} dBi, varsayılan arazi ufuk gözlemci yüksekliği {antenna_height:.1f} m, ek kayıp {loss:.1f} dB.
 
 - FSPL: {fspl:.2f} dB
-- Serbest-uzay alınan güç referansı: {pr_dbm:.2f} dBm
-- Geometrik doğrudan görüş: {line_of_sight_label}
+- RF hesabında kullanılan menzil: {calculation_range:,.2f} km
+- Engelsiz yol varsayımsal alınan güç referansı: {pr_dbm:.2f} dBm
+- Dünya merkezi / modellenen ufuk kontrolü: {line_of_sight_label}
 
-Bu RF değeri alıcı gürültüsü ve veri hızıyla karşılaştırılmış bir bağlantı marjı değildir.
+{rf_interpretation}
 
 ## 6. Ay'daki farklı konumlarda RF gücü neden değişir?
 

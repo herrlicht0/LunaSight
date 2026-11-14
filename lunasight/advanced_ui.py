@@ -609,6 +609,8 @@ class LunarSurfaceExplorer:
         if hasattr(self.app, "radio_panel"):
             self.app.radio_panel.result = None
             self.app.radio_panel.scenario = None
+            if not self.terrain_coverage_available:
+                self.app.radio_panel.horizon_var.set("0")
             self.app.radio_panel.refresh()
         if hasattr(self.app, "metric_values"):
             for value in self.app.metric_values:
@@ -741,6 +743,7 @@ class LunarSurfaceExplorer:
         self.trek_site_grid = grid
         self._trek_site_key = (round(latitude, 6), round(longitude, 6))
         self._loading = False
+        self._fraction_cache_key = None
         self.trek_button.configure(
             state="normal",
             text=translate("NASA terrain ready", self.app.language),
@@ -753,6 +756,8 @@ class LunarSurfaceExplorer:
                 text=f"{translate('NASA Moon Trek terrain loaded for this place.', self.app.language)} {grid.source}"
             )
             self._draw_pov()
+            if hasattr(self.app, "radio_panel"):
+                self.app.radio_panel.refresh()
         else:
             self.map_status.set(
                 translate(
@@ -861,16 +866,36 @@ class LunarSurfaceExplorer:
 
     @property
     def terrain_coverage_available(self) -> bool:
-        return self._terrain_site_index is not None and "NASA/GSFC" in self.grid.source
+        local_lola_available = (
+            self._terrain_site_index is not None
+            and "NASA/GSFC" in self.grid.source
+        )
+        trek_site_key = (round(self.selected_lat, 6), round(self.selected_lon, 6))
+        return local_lola_available or (
+            self.trek_site_grid is not None
+            and self._trek_site_key == trek_site_key
+        )
 
     def local_horizon(self, azimuth_deg: float, eye_height_m: float = 1.7) -> float:
         if not self.terrain_coverage_available:
             return 0.0
+        if self._terrain_site_index is not None and "NASA/GSFC" in self.grid.source:
+            if self.selected_x is None or self.selected_y is None:
+                return 0.0
+            terrain_grid = self.grid
+            site_index = self._terrain_site_index
+            x_m, y_m = self.selected_x, self.selected_y
+        else:
+            terrain_grid = self.trek_site_grid
+            if terrain_grid is None:
+                return 0.0
+            site_index = nearest_grid_index(terrain_grid, 0.0, 0.0)
+            x_m, y_m = 0.0, 0.0
         try:
             return terrain_horizon_at_azimuth(
-                self.grid, self.selected_x, self.selected_y, azimuth_deg,
+                terrain_grid, x_m, y_m, azimuth_deg,
                 eye_height_m=eye_height_m, max_range_m=120_000.0,
-                site_index=self._terrain_site_index,
+                site_index=site_index,
             )
         except Exception:
             return 0.0
@@ -906,7 +931,10 @@ class LunarSurfaceExplorer:
         using_trek_dem = False
         using_global_dem = False
         terrain_grid = None
-        if self.terrain_coverage_available:
+        if (
+            self._terrain_site_index is not None
+            and "NASA/GSFC" in self.grid.source
+        ):
             try:
                 terrain_grid = nasa_lola_surface_patch(
                     self.grid,
@@ -1115,7 +1143,7 @@ class RadioLightingPanel:
         self._entry(self.advanced_frame, "Earth–Moon distance (km)", self.range_var,
                     "Filled from JPL when available; otherwise an average distance is used.")
         self._entry(self.advanced_frame, "Local horizon toward Earth (degrees)", self.horizon_var,
-                    "Updated automatically when detailed local terrain covers the selected place.")
+                    "Detailed terrain supplies this automatically; without it, enter a reference horizon.")
 
         buttons = tk.Frame(left, bg=PANEL)
         buttons.pack(fill="x", padx=16, pady=(8, 10))
@@ -1137,9 +1165,9 @@ class RadioLightingPanel:
         metric_specs = [
             ("lux", "DIRECT SUNLIGHT ON THE GROUND", "— lux"),
             ("irr", "SUN ENERGY REACHING THE GROUND", "— W/m²"),
-            ("power", "ESTIMATED RADIO POWER FROM EARTH", "— dBm"),
-            ("fspl", "SIGNAL LOST OVER THE DISTANCE", "— dB"),
-            ("los", "CAN THE LANDER SEE EARTH?", "Not checked"),
+            ("power", "CLEAR-PATH RECEIVED-POWER REFERENCE", "— dBm"),
+            ("fspl", "FREE-SPACE LOSS (FREQUENCY + DISTANCE)", "— dB"),
+            ("los", "EARTH-CENTER VISIBILITY CHECK", "Not checked"),
             ("assessment", "DOES THIS PLACE LOOK PROMISING?", "Not enough data"),
         ]
         cards = tk.Frame(right, bg=BG)
@@ -1192,8 +1220,12 @@ class RadioLightingPanel:
 
     def set_analysis(self, scenario, result):
         self.scenario, self.result = scenario, result
-        if result.earth_range_km is not None:
-            self.range_var.set(f"{result.earth_range_km:.1f}")
+        range_km = (
+            result.earth_range_km
+            if result.earth_range_km is not None
+            else MEAN_EARTH_MOON_RANGE_KM
+        )
+        self.range_var.set(f"{range_km:.2f}")
         self.refresh()
 
     def _selected_profile(self):
@@ -1205,6 +1237,7 @@ class RadioLightingPanel:
         self.profile_details.set(
             f"Example ground-station radio: {profile.band} band.\n"
             f"Frequency: {profile.frequency_hz/1e6:.1f} MHz · wavelength: {profile.wavelength_m*100:.2f} cm.\n"
+            f"Ground-station EIRP: {profile.eirp_dbw:.1f} dBW (published example).\n"
             "This is a published DSN example, not the confirmed radio on every lander."
         )
         if self.result is None:
@@ -1229,15 +1262,29 @@ class RadioLightingPanel:
         explorer = getattr(self.app, "explorer_panel", None)
         terrain_available = bool(explorer and explorer.terrain_coverage_available)
         sun_horizon = 0.0
-        earth_horizon = 0.0
+        try:
+            earth_horizon = float(self.horizon_var.get())
+            if not math.isfinite(earth_horizon) or not -90.0 <= earth_horizon <= 90.0:
+                raise ValueError("Local horizon must be between −90 and +90 degrees.")
+        except ValueError as exc:
+            self.explanation.set(f"Check the technical settings: {exc}")
+            return
         if explorer is not None:
             sun_horizon = explorer.local_horizon(self.result.solar_azimuth_deg, eye_height_m=1.7)
             try:
-                antenna_height = max(0.0, float(self.antenna_height_var.get()))
+                antenna_height = float(self.antenna_height_var.get())
+                if not math.isfinite(antenna_height) or antenna_height < 0.0:
+                    raise ValueError("Antenna height must be finite and cannot be negative.")
             except ValueError:
-                antenna_height = 1.7
-            earth_horizon = explorer.local_horizon(
-                self.result.earth_azimuth_deg, eye_height_m=antenna_height)
+                self.explanation.set(
+                    "Check the technical settings: antenna height must be finite and cannot be negative."
+                )
+                return
+            if terrain_available:
+                earth_horizon = explorer.local_horizon(
+                    self.result.earth_azimuth_deg, eye_height_m=antenna_height
+                )
+                self.horizon_var.set(f"{earth_horizon:.2f}")
 
         lux = estimate_solar_illuminance_lux(
             self.result.solar_elevation_deg, sun_horizon)
@@ -1273,11 +1320,28 @@ class RadioLightingPanel:
 
         self._set_metric("lux", f"{lux:,.0f} lux", GREEN if lux > 0 else MUTED)
         self._set_metric("irr", f"{irradiance:,.1f} W/m²")
-        self._set_metric("power", f"{rf.received_power_dbm_if_los:.1f} dBm",
-                         GREEN if rf.line_of_sight else AMBER)
-        self._set_metric("fspl", f"{rf.free_space_path_loss_db:.1f} dB")
-        self._set_metric("los", "Yes — Earth above terrain" if rf.line_of_sight else "No — below / blocked",
-                         GREEN if rf.line_of_sight else RED)
+        self._set_metric(
+            "power",
+            f"{rf.received_power_dbm_if_los:.2f} dBm"
+            if rf.line_of_sight
+            else translate(
+                "Not estimated — Earth-center path below horizon",
+                self.app.language,
+            ),
+            GREEN if rf.line_of_sight else AMBER,
+        )
+        self._set_metric("fspl", f"{rf.free_space_path_loss_db:.2f} dB")
+        self._set_metric(
+            "los",
+            translate(
+                "Earth center above modeled horizon", self.app.language
+            )
+            if rf.line_of_sight
+            else translate(
+                "Earth center below modeled horizon", self.app.language
+            ),
+            GREEN if rf.line_of_sight else RED,
+        )
         assessment_labels = {
             "INSUFFICIENT DATA": ("Needs more data", AMBER),
             "HIGH CONSTRAINT": ("Major constraint", RED),
@@ -1287,14 +1351,49 @@ class RadioLightingPanel:
         friendly_assessment, assessment_color = assessment_labels.get(
             assessment, (assessment.replace("_", " ").title(), AMBER))
         self._set_metric("assessment", friendly_assessment, assessment_color)
+        range_source = (
+            "JPL Horizons topocentric range"
+            if self.result.earth_range_km is not None
+            and math.isclose(earth_range, self.result.earth_range_km, abs_tol=0.005)
+            else "mean Earth–Moon range fallback"
+            if self.result.earth_range_km is None
+            and math.isclose(
+                earth_range, MEAN_EARTH_MOON_RANGE_KM, abs_tol=0.005
+            )
+            else "user-entered range"
+        )
+        radio_explanation = (
+            f"{translate('Clear-path received-power reference:', self.app.language)} "
+            f"{rf.received_power_dbm_if_los:.2f} dBm at "
+            f"{earth_range:,.2f} km ({translate(range_source, self.app.language)})."
+            + " "
+            + translate(
+                "At a fixed epoch, changing lunar sites changes free-space power by less than about 0.1 dB; similar values are expected.",
+                self.app.language,
+            )
+        )
+        if rf.line_of_sight:
+            radio_explanation += (
+                " "
+                + translate(
+                    "Earth’s center is above the modeled local horizon. This still does not establish a station-specific path or a complete link budget.",
+                    self.app.language,
+                )
+            )
+        else:
+            radio_explanation += (
+                " "
+                + translate(
+                    "Earth’s center is below the modeled local horizon. The clear-path number is hypothetical, not an actual received signal. The visible Earth limb, diffraction, reflections, and a particular ground-station direction are not modeled.",
+                    self.app.language,
+                )
+            )
         self.explanation.set(
             f"Over the next 24 hours: sunlight is available for about {sunlight*100:.1f}% of the sampled time; "
             f"Earth is above the local/reference horizon for about {earth_fraction*100:.1f}%; "
             f"both are visible together for about {both*100:.1f}%.\n\n"
             f"Right now, the estimated direct light on a flat surface is {lux:,.0f} lux. "
-            f"The example {profile.band}-band radio gives a theoretical clear-path received level of "
-            f"{rf.received_power_dbm_if_los:.1f} dBm. "
-            f"{'A geometric path to Earth is visible. ' if rf.line_of_sight else 'Earth is below the local terrain horizon, so there is no direct path now. '}"
+            f"{radio_explanation} "
             f"{('A detailed NASA LOLA local terrain mask was used. ' if terrain_available else 'Detailed terrain for this exact place is not loaded; visibility uses a simpler horizon. ')}"
             f"Assessment: {friendly_assessment}. {assessment_note}"
         )

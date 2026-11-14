@@ -93,7 +93,12 @@ class RFLinkResult:
 
 
 def free_space_path_loss_db(frequency_hz: float, range_km: float) -> float:
-    if frequency_hz <= 0 or range_km <= 0:
+    if (
+        not math.isfinite(frequency_hz)
+        or not math.isfinite(range_km)
+        or frequency_hz <= 0
+        or range_km <= 0
+    ):
         raise ValueError("Frequency and range must be positive.")
     distance_m = range_km * 1000.0
     return 20.0 * math.log10(4.0 * math.pi * distance_m * frequency_hz / C_M_S)
@@ -111,20 +116,27 @@ def calculate_rf_link(
 
     DSN EIRP already combines ground transmitter output and ground antenna
     gain. `receiver_gain_dbi=0` is an isotropic reference, not a claimed CLPS
-    antenna. If terrain blocks Earth, the number remains a theoretical
-    unobstructed free-space reference and `line_of_sight` is false.
+    antenna. `line_of_sight` is only a center-of-Earth-above-local-horizon
+    check. Power is a clear-path free-space reference; a below-horizon result
+    is not an estimate of diffracted or reflected signal or a station-specific
+    link.
     """
-    if range_km <= 0:
+    if not math.isfinite(range_km) or range_km <= 0:
         raise ValueError("Earth–Moon range must be greater than zero.")
-    if other_losses_db < 0:
+    if not math.isfinite(receiver_gain_dbi):
+        raise ValueError("Receiver gain must be finite.")
+    if not math.isfinite(other_losses_db) or other_losses_db < 0:
         raise ValueError("Other losses cannot be negative.")
     path_loss = free_space_path_loss_db(profile.frequency_hz, range_km)
     pr_dbw = profile.eirp_dbw - path_loss + receiver_gain_dbi - other_losses_db
     los = earth_elevation_deg > local_horizon_deg
     if los:
-        status = "Direct path geometrically visible"
+        status = "Earth center is above the modeled local horizon"
     else:
-        status = "Blocked by the ideal/local horizon; no direct link"
+        status = (
+            "Earth center is below the modeled horizon; "
+            "station-specific and partial-disk visibility are not modeled"
+        )
     return RFLinkResult(
         profile=profile,
         range_km=range_km,
