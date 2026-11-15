@@ -1,106 +1,354 @@
-# LunaSight Desktop — v0.5.1
+# LunaSight — Interactive Lunar Landing-Site Explorer
 
-LunaSight is a cross-platform desktop application for exploring lunar landing locations and comparing the sunlight and direct-to-Earth view from a selected point. It is designed to be understandable to non-specialists while keeping the underlying assumptions visible to technical users.
+**LunaSight** is a cross-platform lunar exploration and mission-planning project designed to help users explore potential lunar landing locations and understand the scientific and engineering trade-offs involved in selecting a landing site.
 
-## Start here
+The project provides two complementary applications:
+
+- **LunaSight Web:** A browser-based interactive lunar mission planner with a 3D Moon, mission timeline, sunlight and Earth visibility analysis, and guided simulations.
+- **LunaSight Desktop (v0.5.1):** A standalone Python application offering interactive lunar site selection, NASA terrain integration, scientific calculations, and more detailed technical analysis.
+
+Both applications are designed to make lunar mission planning accessible to non-specialists while keeping scientific assumptions, data sources, and model limitations transparent.
+
+---
+
+# 1. Project Overview
+
+LunaSight explores the relationship between lunar geography, sunlight availability, Earth visibility, terrain, and communication conditions.
+
+Its primary objectives are to:
+
+- Explore the lunar surface through an interactive 3D globe.
+- Identify and compare potential lunar landing locations.
+- Examine the position of the Sun and Earth relative to a selected location.
+- Investigate sunlight availability and direct-to-Earth visibility.
+- Explore lunar terrain using NASA elevation datasets.
+- Understand the relationship between geographical conditions and communication availability.
+- Compare different landing-site scenarios under the same mission conditions.
+
+## Two ways to use LunaSight
+
+| Feature                | Web Version                        | Desktop Version                        |
+| ---------------------- | ---------------------------------- | -------------------------------------- |
+| Platform               | Web browser                        | macOS, Windows, Linux                  |
+| Interface              | Interactive web HUD                | Python desktop GUI                     |
+| 3D Moon exploration    | Yes                                | Yes                                    |
+| Site selection         | Interactive globe and coordinates  | Interactive globe and coordinates      |
+| Sun and Earth analysis | Yes                                | Yes                                    |
+| Mission timeline       | Yes                                | UTC-based analysis                     |
+| NASA/JPL Horizons      | Analytic ephemeris in browser demo | Live API requests                      |
+| NASA LOLA terrain      | Illustrative/local assets          | Global and regional datasets           |
+| Terrain visualization  | Panorama and horizon profiles      | 3D globe and local surface perspective |
+| Communication analysis | Educational radio simulation       | S- and X-band reference calculations   |
+| Language options       | English                            | English and Turkish                    |
+
+---
+
+# 2. LunaSight Web
+
+The browser-based version is an interactive concept for exploring lunar landing-site trade-offs.
+
+The main application is located in `index.html`, while `showcase.html` contains the project presentation and guided mission scenarios.
+
+## Launch the Web Application
+
+### From VS Code
+
+Open the repository folder and run the launcher for your operating system.
+
+**macOS**
+
+- Double-click `run_mac.command`.
+- Alternatively, execute `bash run_mac.command` in the integrated terminal.
+
+**Windows**
+
+- Double-click `run_windows.bat`.
+
+**Linux**
+
+- Execute `bash run_linux.sh` in the integrated terminal.
+
+The launcher starts a local web server and opens:
+
+`http://127.0.0.1:8000/`
+
+Keep the terminal and server window open while using the application.
+
+No package installation is required. The launchers use Python's built-in static web server.
+
+Alternatively, open `index.html` using the VS Code Live Server extension.
+
+To start the server manually:
+
+```bash
+python3 -m http.server 8000 --bind 127.0.0.1
+```
+
+Then visit `http://127.0.0.1:8000/`.
+
+**Internet connection:** Tailwind CSS is loaded from its CDN. Panorama and audio assets are served locally from the repository.
+
+## Install as a Desktop App
+
+The web application includes a standalone-app manifest and application icons.
+
+With the local server running:
+
+- **Safari:** Open the application and select File → Add to Dock.
+- **Chrome / Edge:** Use the browser's Install LunaSight action.
+
+The installed application opens in its own window. The local server must remain active while using this installation.
+
+## Jury Presentation
+
+Open `showcase.html` to explore the Cosmic Variance project presentation, workflow, and three guided lunar simulations.
+
+The presentation includes three scenarios:
+
+1. Slater Plain
+2. Malapert Massif
+3. Nobile Rim
+
+Each scenario opens the interactive HUD at a different lunar location using the same UTC epoch, allowing direct comparison of environmental conditions.
+
+The GitHub Pages workflow deploys both the interactive application and presentation.
+
+- Main application: Repository root (`/`)
+- Project presentation: `/showcase.html`
+
+## Using the Web Simulator
+
+1. Select a lunar landing site in the mission planner.
+2. Inspect the modeled Sun and Earth against the local horizon.
+3. Use the mission timeline to explore changing environmental conditions.
+4. Rotate the Moon to explore different geographical locations.
+5. Enter coordinates manually if needed.
+6. Compare sunlight and direct-to-Earth visibility using the telemetry panel.
+7. Explore the optional communication channel, which combines local radio and static audio.
+
+The browser demonstration uses an analytic ephemeris, illustrative horizon profiles, and panorama imagery. It is an educational simulation rather than a landing-site certification tool.
+
+---
+
+# 3. LunaSight Desktop (v0.5.1)
+
+The desktop version is a cross-platform application for exploring lunar landing locations and comparing sunlight availability and direct-to-Earth visibility from a selected point.
+
+It is designed to be understandable to non-specialists while keeping the underlying scientific assumptions visible to technical users.
+
+## Getting Started
 
 1. Start LunaSight with an internet connection.
 2. Select **English** or **Turkish** from the Language menu in the upper-right corner.
-3. The app opens on **Choose a place**.
-4. Choose a globe preset (near side, far side, east, west, north pole or south pole).
-5. Hold the left mouse button and drag the Moon to rotate it. Dragging rotates without changing the selected site.
-6. Zoom with the mouse wheel/trackpad or the **+ / −** buttons. **Reset view** returns to the South Pole view and default zoom.
-7. Click a spot on the lunar surface to select it. A short click selects; a drag only rotates.
-8. Click **Set date and check this place**, choose a UTC date and time, then press **Check sunlight and Earth with NASA/JPL**.
-9. Open **Sunlight & Earth link** for the simple lighting and radio explanation, or **Compare places** to save multiple scenarios.
+3. The application opens on **Choose a place**.
+4. Select a globe preset:
+   - Near side
+   - Far side
+   - East
+   - West
+   - North pole
+   - South pole
+5. Hold the left mouse button and drag the Moon to rotate it. Dragging rotates the globe without changing the selected location.
+6. Zoom using the mouse wheel, trackpad, or the **+ / −** buttons.
+7. Use **Reset view** to return to the South Pole view and default zoom.
+8. Click a location on the lunar surface to select it. A short click selects a location; dragging rotates the globe.
+9. Select **Set date and check this place**, choose a UTC date and time, and press **Check sunlight and Earth with NASA/JPL**.
+10. Open **Sunlight & Earth link** for a simplified explanation or **Compare places** to save and compare multiple scenarios.
 
-Manual latitude/longitude entry is available but hidden by default because the 3D globe is the primary site selector.
+Manual latitude and longitude entry is also available, although it is hidden by default because the 3D globe is the primary location selector.
 
-For a larger, high-contrast guide, open [`reports/LunaSight_User_Guide.html`](reports/LunaSight_User_Guide.html) in your browser. The detailed science guide is also available as [`reports/LunaSight_Science_and_Coverage_Guide.html`](reports/LunaSight_Science_and_Coverage_Guide.html).
+## User Guides
 
-## What's new in v0.5.1
+- `reports/LunaSight_User_Guide.html` — Accessible, high-contrast user guide.
+- `reports/LunaSight_Science_and_Coverage_Guide.html` — Detailed scientific models, datasets, and coverage limitations.
 
-- Rotate the Moon by dragging, select locations with a short click, and zoom with the wheel or on-screen controls.
-- **Reset view** returns to the South Pole preset and default zoom.
-- Instruction text, secondary labels and the in-app data guide use larger fonts and stronger contrast.
-- The selected-site preview is now a lunar surface perspective with a dark sky and terrain horizon, replacing the labeled 3D terrain chart. Calculated Sun/Earth directions are marked when visible.
-- The selected-site marker stays visible while rotating: it follows the location on the near side and moves to the globe's edge with a direction cue when the location is on the far side.
-- The app now opens at the whole-Moon site selector instead of the analysis form.
-- Six orthogonal geographic views make every part of the Moon reachable: Earth-facing side, far side, east side, west side, north pole and south pole.
-- Click the 3D globe to select a coordinate; quick links cover Apollo, Luna, Chang'e, Chandrayaan-3 and south-polar reference areas.
-- NASA global LOLA elevation can be downloaded at 4 px/degree (small starter model) or 16 px/degree (larger global model). Downloads are cached locally.
-- An optional NASA LROC WAC-derived color texture is loaded for the globe. It is a display texture; high-latitude fill has lower detail and is not a substitute for measured terrain.
-- The NASA globe uses an 81 × 161 anti-aliased display mesh (about 2.25° between vertices), improving visible relief and color detail while keeping the full-Moon view responsive. This display mesh does not increase the source DEM's resolution.
-- The surface perspective uses detailed local LOLA terrain when available, otherwise the downloaded global LOLA grid. With no NASA terrain loaded it creates a repeatable, site-specific illustrative landscape, clearly labeled as not NASA data. The view faces the Sun after analysis and dims when the Sun is below the local horizon.
-- **NASA TREK terrain here** downloads a cached, 16 km local LOLA patch from the NASA Moon Trek global service (256 pixels/degree) or its 100 m/pixel polar services. The surface preview reprojects it onto a regular local east/north grid; availability still depends on NASA's service and local coverage.
-- The surface-view camera is automatically raised above higher nearby terrain to prevent the viewpoint from clipping below the rendered ground. Its displayed elevation is therefore not a fixed astronaut eye height.
-- The communication panel now starts safely before an analysis and presents a beginner-friendly summary.
-- The dashboard's 24-hour sunlight and Earth visibility percentages are adjusted by the local LOLA horizon when detailed terrain is available.
-- A direct “Set date and check this place” action connects site selection to mission date and analysis.
+## What's New in v0.5.1
 
-## Scientific models and data
+- Interactive Moon rotation using mouse dragging.
+- Location selection through short clicks.
+- Zoom controls and reset functionality.
+- Improved typography, readability, and interface contrast.
+- A lunar surface perspective with a dark sky and terrain horizon.
+- Visible Sun and Earth direction indicators when applicable.
+- A persistent selected-site marker while rotating the globe.
+- Six geographical presets covering the entire Moon.
+- Quick links to Apollo, Luna, Chang'e, Chandrayaan-3, and South Pole reference locations.
+- Optional NASA LOLA elevation downloads at 4 px/degree and 16 px/degree.
+- Optional NASA LROC WAC-derived color texture.
+- An anti-aliased 81 × 161 globe display mesh.
+- Detailed local LOLA terrain integration when available.
+- NASA Moon Trek local terrain downloads.
+- Improved horizon-aware sunlight and Earth visibility calculations.
+- A beginner-friendly communication dashboard.
+- Direct integration between site selection, mission date, and scientific analysis.
 
-### 1. Sun and Earth positions
+The display mesh improves visualization but does not increase the resolution of the original elevation dataset.
 
-- Live topocentric azimuth, elevation and Earth range are requested from the JPL Horizons API for the selected lunar latitude/longitude and UTC epoch.
+---
+
+# 4. Scientific Models and Data
+
+The desktop application includes several scientific and engineering models. Their assumptions and limitations are described below.
+
+## 4.1 Sun and Earth Positions
+
+- Live topocentric azimuth, elevation, and Earth range are requested from the JPL Horizons API.
+- Calculations use the selected lunar latitude, longitude, and UTC epoch.
 - The following 24 hours are sampled at 30-minute intervals.
-- The current visibility percentages use the centre of the Sun/Earth relative to the selected horizon. The model does not yet calculate the full partial-disk occultation or refine exact rise/set event times.
+- Visibility percentages use the centre of the Sun or Earth relative to the selected horizon.
 
-### 2. Lunar topography and global site selection
+The current implementation does not calculate full partial-disk occultation or refine exact rise and set event times.
 
-- **Global LOLA 4 px/degree:** approximately 7.5 km per pixel at the equator; recommended for a quick full-Moon overview.
-- **Global LOLA 16 px/degree:** approximately 1.9 km per pixel at the equator; optional larger download for a more detailed full-Moon overview.
-- The globe display anti-aliases those source grids onto an 81 × 161 mesh for smoother, more detailed rendering; this is visualization resampling, not new terrain measurement.
-- **South polar LOLA 80 m/pixel:** regional high-resolution elevation product for the south polar area.
-- **Six 5 m/pixel site tiles:** selected south-polar candidate areas (Connecting Ridge, Shackleton rim, peak near Shackleton, de Gerlache rim, Leibnitz beta plateau and Malapert massif).
-- Global LOLA samples are bilinearly interpolated with longitude wrapping and nodata-aware weights to reduce blocky artifacts in local previews. The global model remains coarse; it is not a high-resolution horizon mask and cannot identify small rocks, lander-scale slopes or landing hazards.
-- **NASA Moon Trek local LOLA:** use **NASA TREK terrain here** to request a cached patch centered on the selected coordinates. Moon Trek provides a global 256-pixel/degree service and 100 m/pixel north/south polar services. The local view samples this source at its native coverage and does not imply hazard-scale resolution.
+## 4.2 Lunar Topography and Global Site Selection
 
-The higher-resolution SLDEM2015 merged LOLA/Kaguya terrain product covers approximately 60°S–60°N, with effective spatial resolution around 60–100 m. Its published global files are multi-gigabyte, and the highest-resolution versions are distributed as regional tiles. It is documented as a source for a future regional-download feature but is **not automatically downloaded by v0.5.1**. Polar areas require their own LOLA products. See the NASA PGDA data page in Sources.
+LunaSight integrates several NASA lunar elevation datasets.
 
-### 3. Sunlight and lux
+| Dataset                       | Resolution                   | Purpose                         |
+| ----------------------------- | ---------------------------- | ------------------------------- |
+| Global LOLA                   | 4 px/degree                  | Full-Moon overview              |
+| Global LOLA                   | 16 px/degree                 | More detailed global overview   |
+| South Polar LOLA              | 80 m/pixel                   | Regional south-polar elevation  |
+| Selected site tiles           | 5 m/pixel                    | High-resolution candidate areas |
+| NASA Moon Trek                | 256 px/degree global service | Local terrain patches           |
+| NASA Moon Trek polar services | 100 m/pixel                  | Polar terrain coverage          |
 
-- Solar elevation is taken from JPL Horizons.
-- Direct horizontal-surface illuminance is estimated as `127,000 lx × sin(solar elevation)` when the Sun is above the modeled horizon; otherwise it is zero.
-- Direct solar irradiance is estimated as `1361 W/m² × sin(solar elevation)` when above the horizon.
-- These are ideal direct-beam estimates. They do not include surface reflectance, thermal emission, Earthshine, visor optical effects, dust, local shading if no detailed DEM is loaded, or the actual solar-array tilt and efficiency.
-- Lux is a human-vision-weighted photometric unit. It is not radio signal power.
+The six high-resolution south-polar candidate areas are:
 
-### 4. Earth visibility and radio reference estimate
+- Connecting Ridge
+- Shackleton rim
+- Peak near Shackleton
+- de Gerlache rim
+- Leibnitz beta plateau
+- Malapert massif
 
-- Earth visibility checks whether Earth's centre is above the reference/local terrain horizon.
-- The S- and X-band RF examples use published DSN ground-station EIRP profiles, the selected epoch's JPL Horizons topocentric Earth range when available, and the Friis/free-space path-loss equation. The displayed received power is explicitly a clear-path reference, not a link margin or a measured signal.
-- Lunar coordinates change Earth-center range by at most about one lunar diameter (~3,475 km), compared with a roughly 400,000 km link. That changes free-space loss by less than 0.1 dB, so location-to-location power can look almost identical even when the calculation is working correctly. Frequency and Earth–Moon distance drive free-space loss; terrain and Earth geometry affect direct-path availability.
-- The visibility check compares Earth's center with the modeled local horizon. It does not model Earth's visible limb, a particular DSN station's position/availability, antenna patterns or pointing, diffraction, reflections, or a full communications link budget. When Earth's center is below the modeled horizon, the panel no longer presents the hypothetical clear-path power as an available signal.
-- The default lander receive gain and additional-loss values are simple reference assumptions that can be changed under **Show technical settings**.
-- This produces a theoretical received-power reference in dBm. It is not a completed communications link budget and does not prove a modem can establish a link.
+Global LOLA samples are bilinearly interpolated with longitude wrapping and nodata-aware weights to reduce blocky artifacts in local previews.
 
-A mission-specific link closure also needs the actual lander antenna pattern and gain, receiver G/T or noise temperature, bandwidth, data rate, modulation/coding, pointing error, polarization and implementation losses. The DSN ground-station example is not the confirmed hardware configuration of every NASA or CLPS mission.
+However, the global elevation model remains relatively coarse and cannot identify small rocks, lander-scale slopes, or landing hazards.
 
-### 5. Simple site suitability indicator
+### SLDEM2015
 
-LunaSight uses a transparent educational screen:
+The higher-resolution SLDEM2015 merged LOLA/Kaguya terrain product covers approximately 60°S–60°N, with an effective spatial resolution of around 60–100 metres.
 
-- **Major constraint:** sampled sunlight is below 20% or Earth visibility is below 10%.
-- **Promising geometry:** sunlight is at least 70%, Earth visibility at least 50%, simultaneous visibility at least 30%, and detailed local LOLA terrain is loaded.
-- **Compare alternatives:** other calculated cases that do not meet the above conditions.
-- **Needs more data:** no ephemeris calculation has been run.
+Its global files are several gigabytes in size, and the highest-resolution products are distributed as regional tiles.
 
-These thresholds are prototype screening rules, not NASA requirements or a landing approval. No positive “promising geometry” label is shown without detailed local LOLA terrain coverage.
+SLDEM2015 is documented as a potential source for future regional downloads but is not automatically downloaded in v0.5.1. Polar regions require their own LOLA products.
 
-## Important coverage boundary
+## 4.3 Sunlight and Illuminance
 
-**Any lunar location can be selected. High-resolution science data are not available at equal resolution everywhere in this prototype.** The whole-Moon grid is appropriate for browsing and broad context; the most detailed horizon calculations are currently limited to the loaded south-polar LOLA coverage and six named site tiles. For other regions, the app clearly falls back to a simple horizon unless a detailed local dataset is integrated.
+The desktop application estimates direct horizontal-surface illuminance using:
 
-LunaSight v0.5.1 is an educational and early-planning prototype. It is not a flight tool, landing-site certification system or substitute for mission-specific SPICE, terrain, thermal, power, communications and hazard analyses.
+`127,000 lx × sin(solar elevation)`
 
-## Install and run
+Direct solar irradiance is estimated using:
 
-Requirements: Python 3.10+, Tkinter, and an internet connection for live JPL/NASA data.
+`1361 W/m² × sin(solar elevation)`
+
+Both estimates are zero when the Sun is below the modeled horizon.
+
+These are ideal direct-beam estimates. They do not account for:
+
+- Surface reflectance.
+- Thermal emission.
+- Earthshine.
+- Visor optical effects.
+- Dust.
+- Local shading when detailed terrain is unavailable.
+- Actual solar-array tilt and efficiency.
+
+Lux is a human-vision-weighted photometric unit and should not be confused with radio signal power.
+
+## 4.4 Earth Visibility and Communication Analysis
+
+The application checks whether Earth's centre is above the reference or local terrain horizon.
+
+The S- and X-band radio examples use:
+
+- Published DSN ground-station EIRP profiles.
+- JPL Horizons topocentric Earth range.
+- The Friis free-space path-loss equation.
+
+The displayed received power is a theoretical clear-path reference, not a measured signal or completed communications link budget.
+
+The lunar coordinates change Earth-centre range by at most approximately one lunar diameter (3,475 km), compared with an Earth–Moon distance of roughly 400,000 km.
+
+Consequently, the difference in free-space loss between lunar locations can be less than 0.1 dB.
+
+The visibility model does not include:
+
+- Earth's complete visible limb.
+- Specific DSN station availability.
+- Antenna patterns and pointing.
+- Diffraction and reflections.
+- A complete mission communications link budget.
+
+A mission-specific communications assessment would also require the actual lander antenna pattern, receiver G/T or noise temperature, bandwidth, data rate, modulation and coding, pointing error, polarization, and implementation losses.
+
+The DSN ground-station example is not a confirmed hardware configuration for every NASA or CLPS mission.
+
+## 4.5 Site Suitability Indicator
+
+LunaSight uses a transparent educational screening system.
+
+| Classification       | Conditions                                                                                                                         |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Major constraint     | Sampled sunlight below 20% or Earth visibility below 10%                                                                           |
+| Promising geometry   | Sunlight at least 70%, Earth visibility at least 50%, simultaneous visibility at least 30%, and detailed local LOLA terrain loaded |
+| Compare alternatives | Other calculated cases that do not meet the above conditions                                                                       |
+| Needs more data      | No ephemeris calculation has been performed                                                                                        |
+
+These thresholds are prototype screening rules, not official NASA requirements or landing approval criteria.
+
+A positive **Promising geometry** classification is not displayed without detailed local LOLA terrain coverage.
+
+---
+
+# 5. Important Scientific Limitations
+
+**LunaSight is an educational and early-stage mission-planning prototype.**
+
+Any lunar location can be selected, but high-resolution scientific data are not available at equal resolution everywhere.
+
+The whole-Moon elevation grid is suitable for browsing and broad geographical context. More detailed horizon calculations are currently limited to loaded south-polar LOLA coverage and six named site tiles.
+
+For other locations, the application falls back to a simplified horizon unless a detailed local dataset is integrated.
+
+The applications are not flight tools, landing-site certification systems, or substitutes for mission-specific engineering analysis.
+
+Their results must not be interpreted as operational guidance or proof that a particular location is safe for landing.
+
+Validated ephemerides, measured terrain, hazard analysis, and mission-specific thermal, power, communications, and engineering reviews are required for actual mission decisions.
+
+---
+
+# 6. Installation and Requirements
+
+## 6.1 Web Version
+
+**Requirements:**
+
+- A modern web browser.
+- Python for the local static server.
+- Internet connection for Tailwind CSS.
+
+No additional Python packages are required.
+
+Run the appropriate launcher or start the server manually:
+
+```bash
+python3 -m http.server 8000 --bind 127.0.0.1
+```
+
+## 6.2 Desktop Version
+
+**Requirements:**
+
+- Python 3.10 or newer.
+- Tkinter.
+- Internet connection for live JPL/NASA data.
 
 ### macOS
 
-Double-click `run_mac.command`, or in Terminal:
+Double-click `run_mac.command`, or run:
 
 ```bash
 python3 -m pip install -r requirements.txt
@@ -118,58 +366,141 @@ py main.py
 
 ### Linux
 
-Install the Tk package for your distribution if needed, then run:
+Install the Tk package for your Linux distribution if necessary, then run:
 
 ```bash
 python3 -m pip install -r requirements.txt
 python3 main.py
 ```
 
-The first launch can download global LOLA data and the optional color texture when you press the relevant buttons. These files are cached in `~/.cache/lunasight/global_moon` (or the equivalent home-cache directory on your OS). The build environment used for this release could not verify live NASA downloads or a live Horizons request; test the first network-backed run on your computer.
+The first launch can download global LOLA elevation data and the optional color texture when requested.
 
-## Tests
+Downloaded datasets are cached locally in:
+
+`~/.cache/lunasight/global_moon`
+
+The exact cache location depends on the operating system.
+
+The v0.5.1 build environment could not verify live NASA downloads or a live Horizons request. The first network-backed run should therefore be tested on the user's computer.
+
+---
+
+# 7. Testing
+
+The desktop application includes automated tests.
+
+Run the test suite using:
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-The v0.5.1 build was checked with 30 automated tests and a desktop-window smoke test that included zoom, drag rotation, reset, Turkish/English switching, the empty dashboard state and a synthetic analysis result.
+The v0.5.1 build was checked with 30 automated tests and a desktop-window smoke test covering:
 
-## Sources
+- Zoom.
+- Drag rotation.
+- Reset functionality.
+- Turkish and English language switching.
+- Empty dashboard state.
+- Synthetic analysis results.
 
-- [JPL Horizons API documentation](https://ssd-api.jpl.nasa.gov/doc/horizons.html)
-- [NAIF SPICE documentation](https://naif.jpl.nasa.gov/naif/) — future validation/integration source; SPICE is not yet the active calculation backend.
-- [NASA/GSFC SVS — CGI Moon Kit global LOLA maps and LROC-derived texture](https://svs.gsfc.nasa.gov/4720)
-- [NASA PGDA — High-resolution Lunar Topography (SLDEM2015)](https://pgda.gsfc.nasa.gov/products/54)
-- [NASA/GSFC PGDA — LOLA south-polar DEM and site tiles](https://pgda.gsfc.nasa.gov/products/90)
-- [NASA Moon Trek](https://trek.nasa.gov/moon/) — global map and additional lunar datasets.
-- [LROC WMS map and layers](https://data.lroc.imldi.com/lroc)
-- [NASA HLS RF ConOps](https://ntrs.nasa.gov/api/citations/20250003508/downloads/HLS-CONOP-008_Sustained_Phase_HLS_RF_ConOps_Rev_A.pdf)
-- [NASA/JPL DSN Services Catalog](https://www.nasa.gov/wp-content/uploads/2023/09/dsn-services-catalog.pdf)
-- [JPL DSN Frequency and Channel Assignments](https://deepspace.jpl.nasa.gov/dsndocs/810-005/201/201D.pdf)
-- [NASA OCHMO — Artemis Lighting Considerations](https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-001-artemis-lighting-considerations.pdf)
-- [LunaSight detailed technical report (Turkish)](reports/LunaSight_NASA_RF_ve_Aydinlatma_Teknik_Raporu_TR.md)
-- [LunaSight science and coverage guide (HTML, readable)](reports/LunaSight_Science_and_Coverage_Guide.html)
-- [LunaSight easy user guide (HTML, readable)](reports/LunaSight_User_Guide.html)
-- [LunaSight science and coverage guide (English)](reports/LunaSight_v0.5.0_Science_and_Coverage_Guide_EN.md)
+---
 
-## Project structure
+# 8. Repository Structure
+
+The repository contains both the browser-based and desktop implementations.
 
 ```text
-LunaSight-Desktop/
+LunaSight/
+│
+├── LunaSightWeb/
+│   ├── index.html
+│   ├── showcase.html
+│   ├── assets/
+│   ├── panorama-*.png
+│   ├── cosmic-variance-logo.png
+│   └── *.mp3
+│
+├── lunasight/
+│   ├── engine.py
+│   ├── science.py
+│   ├── terrain.py
+│   ├── advanced_ui.py
+│   ├── reporting.py
+│   ├── models.py
+│   └── ui.py
+│
+├── reports/
+│   ├── LunaSight_User_Guide.html
+│   ├── LunaSight_Science_and_Coverage_Guide.html
+│   └── ...
+│
+├── tests/
+│
 ├── main.py
 ├── requirements.txt
+│
 ├── run_mac.command
 ├── run_windows.bat
 ├── run_linux.sh
-├── reports/
-├── tests/
-└── lunasight/
-    ├── engine.py
-    ├── science.py
-    ├── terrain.py
-    ├── advanced_ui.py
-    ├── reporting.py
-    ├── models.py
-    └── ui.py
+│
+├── .gitignore
+└── README.md
 ```
+
+*Note: The directory names above illustrate the combined project organization. Adjust them to match the actual repository structure.*
+
+---
+
+# 9. Scientific References and Data Sources
+
+LunaSight draws on publicly available NASA and JPL resources.
+
+### Orbital Mechanics and Ephemerides
+
+- [NASA/JPL Horizons API](https://ssd-api.jpl.nasa.gov/doc/horizons.html)
+- [NAIF SPICE Documentation](https://naif.jpl.nasa.gov/naif/)
+
+SPICE is a potential future validation and integration source; it is not the active calculation backend in Desktop v0.5.1.
+
+### Lunar Topography and Mapping
+
+- [NASA Moon Trek](https://trek.nasa.gov/moon/)
+- [NASA/GSFC SVS — CGI Moon Kit Global LOLA Maps and LROC-derived Texture](https://svs.gsfc.nasa.gov/4720)
+- [NASA PGDA — High-resolution Lunar Topography (SLDEM2015)](https://pgda.gsfc.nasa.gov/products/54)
+- [NASA/GSFC PGDA — LOLA South Polar DEM and Site Tiles](https://pgda.gsfc.nasa.gov/products/90)
+- [LROC WMS Map and Layers](https://data.lroc.imldi.com/lroc)
+
+### Communications and Radio Engineering
+
+- [NASA HLS RF ConOps](https://ntrs.nasa.gov/api/citations/20250003508/downloads/HLS-CONOP-008_Sustained_Phase_HLS_RF_ConOps_Rev_A.pdf)
+- [NASA/JPL DSN Services Catalog](https://www.nasa.gov/wp-content/uploads/2023/09/dsn-services-catalog.pdf)
+- [JPL DSN Frequency and Channel Assignments](https://deepspace.jpl.nasa.gov/dsndocs/810-005/201/201D.pdf)
+
+### Lunar Lighting
+
+- [NASA OCHMO — Artemis Lighting Considerations](https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-001-artemis-lighting-considerations.pdf)
+
+### LunaSight Documentation
+
+- `reports/LunaSight_NASA_RF_ve_Aydinlatma_Teknik_Raporu_TR.md` — Detailed technical report in Turkish.
+- `reports/LunaSight_Science_and_Coverage_Guide.html` — Science and coverage guide.
+- `reports/LunaSight_User_Guide.html` — User guide.
+- `reports/LunaSight_v0.5.0_Science_and_Coverage_Guide_EN.md` — English science and coverage documentation.
+
+---
+
+# 10. Project Vision
+
+LunaSight aims to make lunar exploration and landing-site analysis more accessible through interactive visualization and transparent scientific modeling.
+
+By combining geographical exploration, orbital calculations, terrain data, lighting conditions, and communication constraints, the project provides an educational environment for understanding the challenges of future lunar missions.
+
+The long-term vision is to expand the integration of validated scientific datasets, improve local terrain and horizon modeling, and develop increasingly comprehensive tools for comparing potential lunar landing locations.
+
+**LunaSight — Explore the Moon. Understand the Environment. Evaluate the Possibilities.**
+
+---
+
+*LunaSight is an independent educational and research-oriented project. NASA and JPL datasets and documentation are referenced as scientific sources; their inclusion does not imply NASA endorsement or affiliation.*
+
